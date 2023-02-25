@@ -1,6 +1,6 @@
 var localTheme;
 var flag_for_select;
-if(localStorage.getItem('theme')=='Тёмная') {
+if(localStorage.getItem('theme')=='Dark') {
     flag_for_select = true;
     localTheme = 'dark';
     document.getElementById('body').classList.remove('lightBody');
@@ -115,36 +115,24 @@ function createPaint(parent) {
     cx.canvas.addEventListener('mousemove', (event) => {
       
       let rgb;
-      let getI = cx.getImageData(event.offsetX, event.offsetY, 1,1).data;
-      let getI2 = cx2.getImageData(event.offsetX, event.offsetY, 1,1).data;
-      if(getI[0] == 0 && getI[1] == 0 && getI[2] == 0 && getI[3] == 0){
-        rgb = cx2.getImageData(event.offsetX, event.offsetY ,1,1).data
-      }else{
-        rgb = cx.getImageData(event.offsetX, event.offsetY ,1,1).data
-      }
+      rgb = cx2.getImageData(event.offsetX, event.offsetY ,1,1).data
+      // console.log(rgb[0],rgb[1],rgb[2])
       for(i in dict){
         if((Math.abs(rgb[0] - dict[i][0]) <= 5) && (Math.abs(rgb[1] - dict[i][1]) <= 5) && (Math.abs(rgb[2] - dict[i][2]) <= 5)){
           document.getElementById('id_number_part').textContent = `Деталь: ${i}`
+          // part_number = i;
+
           break;
         }
       }
 
-
-
-          if(getI[0] == 0 && getI[1] == 0 && getI[2] == 0 && getI[3] == 0){
-            rgb = [getI2[0], getI2[1], getI2[2]]
-          }else{
-            rgb = [getI[0], getI[1], getI[2]]
-          }
-
-
-
       cursor.style.display = 'block';
-      cursor.style.border = `5px dotted white`;
+      cursor.style.border = `5px dotted ${global_color}`;
       cursor.style.width =global_size + 'px';
       cursor.style.height = global_size + 'px';
       cursor.style.left = event.clientX -Math.round(global_size/2) -3+ 'px';
       cursor.style.top = event.clientY- Math.round(global_size/2) -3 + 'px';
+      // console.log(event.offsetX, event.offsetY)
       cx.canvas.addEventListener('mouseout', ()=>{
         cx.canvas.onmousemove = null;
         cursor.style.display = 'none';
@@ -194,7 +182,7 @@ controls.openFile = function(cx) {
         a.setAttribute('href','#');
         a.setAttribute('onClick','filebartocanvas("' + `${String(input.files[i].name)}` + '")'); // При нажатии на кнопку включается функция, в которую передаём название файла 
         a.setAttribute('id',`id_filebar_a${countFile+i+1}`)
-        if(localStorage.getItem('theme') == 'Светлая'){
+        if(localStorage.getItem('theme') == 'Light'){
             a.setAttribute('class', 'btn_a lightbtn_a');
         }else{
           a.setAttribute('class', 'btn_a darkbtn_a');
@@ -203,7 +191,7 @@ controls.openFile = function(cx) {
         var filebarA = document.querySelector('#id_allfiles');
         filebarA.appendChild(a);
         
-        if(localStorage.getItem('theme') == 'Светлая'){
+        if(localStorage.getItem('theme') == 'Light'){
         document.getElementById('id_filebar').style = 'color-scheme: light;';
 
 
@@ -214,7 +202,6 @@ controls.openFile = function(cx) {
     countFile = fileArray.length; // обнавляем информацию о количестве файлов
     filebartocanvas(fileArray[0][0])
     checkorder()
-    flag_for_remove_text = true;
   });
   return elt("label", {for:"file-upload", class:`custom-file-upload ${localTheme}btn`, id:"id_file-upload"}, "Открыть" , input);
 };
@@ -277,6 +264,7 @@ function trackDrag(onMove, onEnd) {
 
 // Кисть
 tools.Line = function(event, cx, onEnd) {
+  // ctx.globalCompositeOperation = "source-over"
   cx.lineCap = "round";
   cx.shadowOffsetX = 0
   cx.shadowOffsetY = 0
@@ -395,6 +383,10 @@ controls.pipe = function(cx) {
         }
       }
     }
+
+    // cx.fillStyle = input.value;
+    // cx.strokeStyle = input.value;
+    // global_color = input.value;
   });
   return input;
 };
@@ -495,6 +487,10 @@ const dict2 = {}
 Object.entries(dict).forEach(([key, value]) => {
   dict2[value] = key
 })
+// console.log(dict2)
+
+
+// console.log(dict2[[255,0,0]])
 
 controls.color = function(cx) {
   var select = elt("select", {class: `btn ${localTheme}btn`, id:'id_color'});
@@ -537,10 +533,15 @@ controls.shears = function(cx){
           shearscx.canvas.width = cx.canvas.width;
           shearscx.canvas.height = cx.canvas.height;
           shearscx.canvas.onmousedown = (event) => {
+            // console.log('down')
             x1 = event.offsetX;
             y1 = event.offsetY;
             shearscx.canvas.onmousemove = (event) =>{
+
+              // console.log('move')
+
               shearscx.clearRect(0,0,cx.canvas.width, cx.canvas.height)
+
 
               shearscx.beginPath()
               shearscx.moveTo(x1,y1);
@@ -568,6 +569,7 @@ controls.shears = function(cx){
               shearscx.closePath();
             }
             shearscx.canvas.onmouseup = (event) => {
+              // console.log('up')
               shearscx.canvas.onmousemove = null;
               x2 = event.offsetX;
               y2 = event.offsetY;
@@ -580,7 +582,9 @@ controls.shears = function(cx){
               shearscx.lineTo(x2,y2);
               shearscx.stroke();
 
-
+  
+              // console.log(x1,y1)
+              // console.log(x2,y2)
   
   
               let shearsWidth = Math.abs(x2-x1);
@@ -595,6 +599,7 @@ controls.shears = function(cx){
               shearscx3.canvas.width = shearsWidth;
               shearscx3.canvas.height = shearsHeight;
               
+              // console.log(cx.canvas)
               shearscx2.drawImage(cx2.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
               shearscx3.drawImage(cx.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
   
@@ -621,13 +626,13 @@ controls.shears = function(cx){
               shearscx3.canvas.height = 0;
   
               fileArray[nowFile][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
-
+              // console.log(fileArray[nowFile])
               flag_for_shears = false;
               document.getElementById('id_shears').style = "color: white;"
               document.getElementById('id_shears').style.removeProperty('color');
             }
             shearscx.canvas.onmousedown = (event) => {
-
+              // console.log('down2')
               shearscx.canvas.onmousemove = null;
               x2 = event.offsetX;
               y2 = event.offsetY;
@@ -640,6 +645,9 @@ controls.shears = function(cx){
                 flag_for_shears = false;
                 return
               }
+  
+              // console.log(x1,y1)
+              // console.log(x2,y2)
   
   
               let shearsWidth = Math.abs(x2-x1);
@@ -654,6 +662,7 @@ controls.shears = function(cx){
               shearscx3.canvas.width = shearsWidth;
               shearscx3.canvas.height = shearsHeight;
               
+              // console.log(cx.canvas)
               shearscx2.drawImage(cx2.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
               shearscx3.drawImage(cx.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
   
@@ -680,6 +689,7 @@ controls.shears = function(cx){
               shearscx3.canvas.height = 0;
   
               fileArray[nowFile][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+              // console.log(fileArray[nowFile])
               flag_for_shears = false;
 
               document.getElementById('id_shears').style.removeProperty('color');
@@ -708,9 +718,11 @@ controls.clear = function(cx) {
         let array_for_shears = [];
         for(let i=0;i<fileArray[nowFile][3].length;i++){
           if(fileArray[nowFile][3][i][0] == 'Shears'){
+            // console.log('fff')
             array_for_shears.push(fileArray[nowFile][3][i])
           }
         }
+        // console.log(fileArray[nowFile])
         fileArray[nowFile][3] = array_for_shears;
       }
     }
@@ -765,6 +777,7 @@ var numbers_photo =[];
 // После нажатия на кнопку на Filebar срабаотывает эта функция, которая передает значения в loadImageURL()
 var nowFile = 0;
 async function filebartocanvas(name){
+  // console.log(fileArray)
     shearscx.canvas.width = 0;
     shearscx.canvas.height = 0;
     for(let i=0;i<countFile;i++){
@@ -783,6 +796,7 @@ async function filebartocanvas(name){
 
     var highlight = document.getElementById(id)
     highlight.classList.add('highlight')
+    // console.log((nowFile-10)*40)
     numberscroll=(nowFile)*40
     allfiles.scrollTo(0,numberscroll)
 
@@ -842,6 +856,7 @@ async function loadImageURL(cx, url, commands) {
       cx.shadowOffsetX = 0
       cx.shadowOffsetY = 0
       cx.shadowBlur = 0
+      // console.log(commands)
       var fixlineWidth = cx.lineWidth
       var fixstrokeStyle = cx.strokeStyle
       for(let i=0; i<commands.length; i++){
@@ -951,7 +966,7 @@ async function loadImageURL2(cx2, url) {
 
       var RED = cx3.getImageData(0,0,x,y);
       var redColors = RED.data
-
+      // console.log(redColors)
       for(let i = 0; i<redColors.length;i+=4){
 
         if(String(redColors[i]) in dict){
@@ -980,10 +995,52 @@ async function loadImageURL2(cx2, url) {
       cx2.canvas.height = y;
 
       cx2.drawImage(cx3.canvas,0,0,x,y);
+
+
+
+
+      // image - отступ слева - отступ сверху - ширина - длина - рассположение фото - расположение фото - размеры - размеры
       resolve();
     };
   }).then();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 async function secretfilebartocanvas(name){
@@ -1133,9 +1190,31 @@ await new Promise(resolve => {
     }
     secretcx.lineWidth = fixlineWidth;
     secretcx.strokeStyle = fixstrokeStyle;
+    
+    // var RAINBOW = secretcx2.getImageData(0,0,x,y);
+    // var rainbowColors = RAINBOW.data
+    // // console.log(rainbowColors)
+    // for(let i = 0; i<rainbowColors.length;i+=4){
+    //   let ourcolor = [rainbowColors[i], rainbowColors[i+1], rainbowColors[i+2]]
+    //   if(ourcolor in dict2){
+    //     let number = ourcolor;
+    //     rainbowColors[i] = Number(dict2[number])
+    //     rainbowColors[i+1] = 0;
+    //     rainbowColors[i+2] = 0;
+    //   }
+    //   else{
+    //     rainbowColors[i] = 0;
+    //     rainbowColors[i+1] = 0;
+    //     rainbowColors[i+2] = 0;
+    //     rainbowColors[i+3] = 0;
+    //   }
+    // }
+
+    // secretcx2.putImageData(RAINBOW, 0, 0);
 
     var RAINBOW = secretcx.getImageData(0,0,x,y);
       var rainbowColors = RAINBOW.data
+      // console.log(rainbowColors)
       for(let i = 0; i<rainbowColors.length;i+=4){
         let ourcolor = [rainbowColors[i], rainbowColors[i+1], rainbowColors[i+2]]
         if(ourcolor in dict2){
@@ -1173,54 +1252,65 @@ controls.save = function(cx) {
 
 
   async function download() {
-    if(countFile != 0){
-      document.getElementById('id_secretcanvas').style = 'display: none;'
-      if(countFile != 1){
-        var zip = new JSZip();
-        let fornowFile = nowFile;
-        for(let i=0;i<countFile;i++){
-          await secretfilebartocanvas(fileArray[i][0]);
-          zip.file(`image${i+1}.jpg`, dataURLtoBlob(secretcx3.canvas.toDataURL()));
+    document.getElementById('id_secretcanvas').style = 'display: none;'
+    if(countFile != 1){
+      var zip = new JSZip();
+      let fornowFile = nowFile;
+      for(let i=0;i<countFile;i++){
+        await secretfilebartocanvas(fileArray[i][0]);
+        zip.file(`image${i+1}.jpg`, dataURLtoBlob(secretcx3.canvas.toDataURL()));
 
-          secretcx.canvas.width = 0;
-          secretcx.canvas.height = 0;
+        secretcx.canvas.width = 0;
+        secretcx.canvas.height = 0;
 
-          secretcx2.canvas.width = 0;
-          secretcx2.canvas.height = 0;
-          
-          secretcx3.canvas.width = 0;
-          secretcx3.canvas.height = 0;
-        }
-        zip.generateAsync({type:'blob'})
-        .then((content) => {
-          saveAs(content, 'out.zip')
-        })
-        filebartocanvas(fileArray[fornowFile][0])
-      }else{
-        await secretfilebartocanvas(fileArray[0][0]);
-        let img = secretcx3.canvas.toDataURL("image/png");
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = 'blob';
-        xhr.onload = function () {
-            let a = document.createElement('a');
-            a.href = window.URL.createObjectURL(xhr.response);
-            a.download = 'image.png';
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        };
-        xhr.open('GET', img);
-        xhr.send();
-        filebartocanvas(fileArray[0][0])
+        secretcx2.canvas.width = 0;
+        secretcx2.canvas.height = 0;
+        
+        secretcx3.canvas.width = 0;
+        secretcx3.canvas.height = 0;
       }
-
-      document.getElementById('id_canvas').style = 'display: inline;'
+      zip.generateAsync({type:'blob'})
+      .then((content) => {
+        saveAs(content, 'out.zip')
+      })
+      filebartocanvas(fileArray[fornowFile][0])
+    }else{
+      await secretfilebartocanvas(fileArray[0][0]);
+      let img = secretcx3.canvas.toDataURL("image/png");
+      let xhr = new XMLHttpRequest();
+      xhr.responseType = 'blob';
+      xhr.onload = function () {
+          let a = document.createElement('a');
+          a.href = window.URL.createObjectURL(xhr.response);
+          a.download = 'image.png';
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+      };
+      xhr.open('GET', img);
+      xhr.send();
+      filebartocanvas(fileArray[0][0])
     }
+
+    document.getElementById('id_canvas').style = 'display: inline;'
   }
   link.addEventListener("click", download);
   return link;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function dataURLtoBlob(dataurl) {
   var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
@@ -1263,10 +1353,10 @@ document.onkeydown = KeyPress;
 // Смена темы
 controls.theme = function(cx) {
     var new_theme = elt("select", {class: `btn ${localTheme}btn`, id:'id_theme'});
-    var themes = ['Светлая', 'Тёмная'];
+    var themes = ['Light', 'Dark'];
     themes.forEach(function(theme) {
         if(flag_for_select) {
-            if(theme=='Тёмная'){
+            if(theme=='Dark'){
                 new_theme.appendChild(elt("option", {value:theme, selected:'selected'},"Тёмная"));
                 flag_for_select = false;
             }else{new_theme.appendChild(elt("option",{value:theme},"Светлая"));}
@@ -1278,8 +1368,8 @@ controls.theme = function(cx) {
 
 
     new_theme.addEventListener("change", function(){
-      if (new_theme.value == 'Светлая'){
-        localStorage.setItem('theme', 'Светлая')
+      if (new_theme.value == 'Light'){
+        localStorage.setItem('theme', 'Light')
 
         // Body, Toolbar, Filebar, Footer
         document.getElementById('body').classList.remove('darkBody');
@@ -1288,6 +1378,8 @@ controls.theme = function(cx) {
         document.getElementById('id_toolbar').classList.add('lightToolFileFooterbar');
         document.getElementById('id_filebar').classList.remove('darkToolFileFooterbar');
         document.getElementById('id_filebar').classList.add('lightToolFileFooterbar');
+        // document.getElementById('id_footer').classList.remove('darkToolFileFooterbar');
+        // document.getElementById('id_footer').classList.add('lightToolFileFooterbar');
         document.getElementById('id_allfiles').classList.remove('darkToolFileFooterbar');
         document.getElementById('id_allfiles').classList.add('lightToolFileFooterbar');
         document.getElementById('id_infobar').classList.remove('darkToolFileFooterbar');
@@ -1328,8 +1420,8 @@ controls.theme = function(cx) {
           document.getElementById(`id_filebar_a${i}`).classList.add('lightbtn_a');
         }
       }
-      if (new_theme.value == 'Тёмная'){
-        localStorage.setItem('theme', 'Тёмная')
+      if (new_theme.value == 'Dark'){
+        localStorage.setItem('theme', 'Dark')
 
         // Body, Toolbar, Filebar, Footer
         document.getElementById('body').classList.remove('lightBody');
@@ -1338,6 +1430,8 @@ controls.theme = function(cx) {
         document.getElementById('id_toolbar').classList.add('darkToolFileFooterbar');
         document.getElementById('id_filebar').classList.remove('lightToolFileFooterbar');
         document.getElementById('id_filebar').classList.add('darkToolFileFooterbar');
+        // document.getElementById('id_footer').classList.remove('lightToolFileFooterbar');
+        // document.getElementById('id_footer').classList.add('darkToolFileFooterbar');
         document.getElementById('id_allfiles').classList.remove('lightToolFileFooterbar');
         document.getElementById('id_allfiles').classList.add('darkToolFileFooterbar');
         document.getElementById('id_infobar').classList.remove('lightToolFileFooterbar');

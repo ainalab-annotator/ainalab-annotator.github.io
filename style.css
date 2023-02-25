@@ -310,6 +310,7 @@
     width:500px;
   }
   #id_cursor{
+    -webkit-filter: invert(100%);
     z-index: 99999999;
   }
   html, body{
