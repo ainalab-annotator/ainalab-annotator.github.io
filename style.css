@@ -1,0 +1,325 @@
+/* ТЕМЫ */
+.lightBody{
+    background: #c9d6ff;
+  }
+  .lightbtn{
+    background: #c9d6ff;
+    font-family: Arial;
+    color:black;
+    border: none;
+  }
+  .lightbtn:hover{
+    /* color:#0178c7; */
+    border: 1px solid black;
+  }
+  .lightToolFileFooterbar{
+    background: #69b7eb;
+  }
+  .lightbtn_a{
+    background: #c9d6ff;
+    font-family: Arial;
+    color: black;
+    border: none;
+  }
+  .lightbtn_a:hover{
+    color:#0178c7;
+    border:1px solid black;
+  }
+  /* DARK */
+  .darkBody{
+    background: #161E35;
+  }
+  .darkbtn{
+    background: #161E35; 
+    color:white;
+    font-family: Arial;
+    border:1px solid black;
+  }
+  .darkbtn:hover{
+    /* color:grey; */
+    border: 1px solid white;
+  }
+  
+  .darkToolFileFooterbar{
+    background: #293659;
+  }
+  
+  .darkbtn_a{
+    background: #161E35; 
+    color:white;
+    border: none;
+  }
+  .darkbtn_a:hover{
+    color:grey;
+    border: 1px solid white;
+  }
+  
+  
+  /* ============================*/
+  body, html{
+     /* -webkit-touch-callout: none;
+     -webkit-user-select: none; 
+     -khtml-user-select: none; 
+     -moz-user-select: none; 
+     -ms-user-select: none; 
+     user-select: none; */
+      width: 1470px;
+      /* height:700px; */
+  }
+  .toolbar{
+    display: inline-grid;
+    grid-template-columns: 100px 100px 100px 100px 100px 100px 100px 100px 0px 100px 100px;
+    justify-items: center;
+    width: 1470px;
+    padding: 10px;
+    height: 35px;
+    border-radius:20px;
+  }
+  .filebar{
+      text-align: center;
+      float: left;
+      width: 200px;
+      height: 550px;
+      border-radius:20px;
+      justify-items: center;
+      padding: 10px;
+  }
+  
+  .btn{
+    top:50%; 
+    padding:5px;
+    height:35px; 
+    width: 120px;
+    border-radius:20px;
+    font-family: Arial;
+    cursor: pointer;
+    /* cursor: none; */
+    font-size: 16px;
+  }
+  .btn_a{
+    font-family: Arial;
+    display: block;
+    top:50%;
+    border-radius:20px; 
+    padding:5px;
+    height:35px; 
+    width: 175px;
+    border-radius:20px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    font-size: 12px;
+    text-align: center;
+    white-space: pre;
+    margin-left:10px;
+    cursor: pointer;
+    /* cursor: none; */
+  }
+  .custom-file-upload {
+    text-align: center;
+    padding-top:7px;
+    top:50%;
+    border-radius:20px; 
+    height: 25px;
+    min-height:10px;
+    min-width: 120px;
+    cursor: pointer;
+    /* cursor: none; */
+    margin-left:20px;
+  }
+  .filebar_and_canvas {
+    display: inline-block; 
+    margin-top: 20px;
+    /* height: 620px; */
+  }
+  /* .footer{
+    border-radius:20px;
+    width:1470px;
+    height: 25px;
+    position: relative;
+    display:none;
+  } */
+  .btn_updownrem{
+    height:30px;
+    width:60px;
+    text-align: center;
+  }
+  .highlight{
+    color: red;
+  }
+  
+  #id_save{
+    margin-left: 865px;
+  }
+  #id_tool{
+    margin-left:125px;
+    height:35px; 
+    width: 90px;
+  }
+  #id_size{
+    margin-left: 110px;
+    height:35px; 
+    width: 90px;
+  }
+  #id_tool:focus,#id_theme:focus,#id_color:focus,#id_size:focus {
+    outline: none;
+}
+  #id_pipe{
+    margin-left: 280px;
+    height:35px; 
+    width: 90px;
+  }
+  #id_color{
+    margin-left: -105px;
+    height:35px; 
+    width: 90px;
+  }
+  
+  #id_shears{
+    margin-left: 65px;
+    height:35px; 
+    width: 90px;
+  }
+  #id_clear{
+    margin-left:50px;
+    height:35px; 
+    width: 90px;
+  }
+  #id_theme{
+    margin-left: 920px;
+  }
+  #id_aina{
+  font-family: 'Impact';
+  font-size: 30px;
+  margin-left: 100px;
+  color: white;
+  margin-bottom: 30px;
+  
+  }
+  
+  #id_text_footer{
+    text-align: center;
+    color: white;
+    font-family:Arial;
+    margin-left:600px;
+    height:20px;
+    width: 300px;
+    text-align: center;
+    position: absolute;
+    top: 20%;
+  }
+  #id_allfiles{
+    height:450px;
+    text-align: center;
+    float: left;
+    width: 200px;
+    justify-items: center;
+    overflow: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    border-radius: 20px;
+    border-bottom: 1px dashed black;
+    border-right: 1px dotted black;
+    border-left: 1px dotted black;
+  }
+  #id_infobar{
+    -webkit-touch-callout: auto;
+     -webkit-user-select: auto; 
+     -khtml-user-select:auto; 
+     -moz-user-select: auto; 
+     -ms-user-select: auto; 
+     user-select: auto;
+
+    font-family: Arial, Helvetica, sans-serif;
+    height:50px;
+    border-radius: 20px;
+    margin-top:10px;
+    color: white;
+  }
+  #id_buttonUP{
+    /* margin-right: 10px; */
+    margin-top: 3px;
+  }
+  #id_buttonDOWN{
+    margin-left: 10px;
+    margin-top: 3px;
+  }
+  #id_buttonREM{
+    margin-left: 10px;
+    margin-top: 3px;
+    font-size:16px;
+  }
+  input[type="file"] {
+      display: none;
+  }
+  #id_canvas{
+    /* cursor:crosshair;*/
+    cursor: none;
+    margin-left: 250px;
+    margin-top:80px;
+    float:left;
+    position: absolute; left: 0; top: 0;
+  }
+  #id_canvas2{
+    margin-left: 250px;
+    margin-top:80px;
+    float:left;
+    position: absolute; left: 0; top: 0;
+    image-rendering: optimizeQuality;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+    -ms-interpolation-mode: nearest-neighbor;
+  }
+  
+  #id_shearscanvas{
+    margin-left: 250px;
+    margin-top:80px;
+    float:left;
+    position: absolute; left: 0; top: 0;
+    background: white;;
+    opacity: 50%;
+  }
+  #id_shearscanvas2{
+    margin-left: 250px;
+    margin-top:80px;
+    display:none;
+  }
+  #id_shearscanvas3{
+    margin-left: 250px;
+    margin-top:80px;
+    display:none;
+  }
+  #id_secretcanvas{
+    margin-left: 250px;
+    margin-top:80px;
+    display:none;
+  }
+  #id_secretcanvas2{
+    margin-left: 250px;
+    margin-top:80px;
+    display:none;
+  }
+  #id_secretcanvas3{
+    margin-left: 250px;
+    margin-top:80px;
+    display:none;
+  }
+  option{
+    text-align: center;
+    width:500px;
+  }
+  #id_cursor{
+    z-index: 99999999;
+  }
+  html, body{
+    /* cursor: none; */
+  }
+  #id_number_part{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
+    width: 100px;
+    margin-left: 160px;
+    color: white;
+    margin-top:10px;
+  }
