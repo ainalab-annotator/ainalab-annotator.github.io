@@ -1,6 +1,6 @@
 var localTheme;
 var flag_for_select;
-if(localStorage.getItem('theme')=='Dark') {
+if(localStorage.getItem('theme')=='Тёмная') {
     flag_for_select = true;
     localTheme = 'dark';
     document.getElementById('body').classList.remove('lightBody');
@@ -194,7 +194,7 @@ controls.openFile = function(cx) {
         a.setAttribute('href','#');
         a.setAttribute('onClick','filebartocanvas("' + `${String(input.files[i].name)}` + '")'); // При нажатии на кнопку включается функция, в которую передаём название файла 
         a.setAttribute('id',`id_filebar_a${countFile+i+1}`)
-        if(localStorage.getItem('theme') == 'Light'){
+        if(localStorage.getItem('theme') == 'Светлая'){
             a.setAttribute('class', 'btn_a lightbtn_a');
         }else{
           a.setAttribute('class', 'btn_a darkbtn_a');
@@ -203,7 +203,7 @@ controls.openFile = function(cx) {
         var filebarA = document.querySelector('#id_allfiles');
         filebarA.appendChild(a);
         
-        if(localStorage.getItem('theme') == 'Light'){
+        if(localStorage.getItem('theme') == 'Светлая'){
         document.getElementById('id_filebar').style = 'color-scheme: light;';
 
 
@@ -214,6 +214,7 @@ controls.openFile = function(cx) {
     countFile = fileArray.length; // обнавляем информацию о количестве файлов
     filebartocanvas(fileArray[0][0])
     checkorder()
+    flag_for_remove_text = true;
   });
   return elt("label", {for:"file-upload", class:`custom-file-upload ${localTheme}btn`, id:"id_file-upload"}, "Открыть" , input);
 };
@@ -1172,48 +1173,50 @@ controls.save = function(cx) {
 
 
   async function download() {
-    document.getElementById('id_secretcanvas').style = 'display: none;'
-    if(countFile != 1){
-      var zip = new JSZip();
-      let fornowFile = nowFile;
-      for(let i=0;i<countFile;i++){
-        await secretfilebartocanvas(fileArray[i][0]);
-        zip.file(`image${i+1}.jpg`, dataURLtoBlob(secretcx3.canvas.toDataURL()));
+    if(countFile != 0){
+      document.getElementById('id_secretcanvas').style = 'display: none;'
+      if(countFile != 1){
+        var zip = new JSZip();
+        let fornowFile = nowFile;
+        for(let i=0;i<countFile;i++){
+          await secretfilebartocanvas(fileArray[i][0]);
+          zip.file(`image${i+1}.jpg`, dataURLtoBlob(secretcx3.canvas.toDataURL()));
 
-        secretcx.canvas.width = 0;
-        secretcx.canvas.height = 0;
+          secretcx.canvas.width = 0;
+          secretcx.canvas.height = 0;
 
-        secretcx2.canvas.width = 0;
-        secretcx2.canvas.height = 0;
-        
-        secretcx3.canvas.width = 0;
-        secretcx3.canvas.height = 0;
+          secretcx2.canvas.width = 0;
+          secretcx2.canvas.height = 0;
+          
+          secretcx3.canvas.width = 0;
+          secretcx3.canvas.height = 0;
+        }
+        zip.generateAsync({type:'blob'})
+        .then((content) => {
+          saveAs(content, 'out.zip')
+        })
+        filebartocanvas(fileArray[fornowFile][0])
+      }else{
+        await secretfilebartocanvas(fileArray[0][0]);
+        let img = secretcx3.canvas.toDataURL("image/png");
+        let xhr = new XMLHttpRequest();
+        xhr.responseType = 'blob';
+        xhr.onload = function () {
+            let a = document.createElement('a');
+            a.href = window.URL.createObjectURL(xhr.response);
+            a.download = 'image.png';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        };
+        xhr.open('GET', img);
+        xhr.send();
+        filebartocanvas(fileArray[0][0])
       }
-      zip.generateAsync({type:'blob'})
-      .then((content) => {
-        saveAs(content, 'out.zip')
-      })
-      filebartocanvas(fileArray[fornowFile][0])
-    }else{
-      await secretfilebartocanvas(fileArray[0][0]);
-      let img = secretcx3.canvas.toDataURL("image/png");
-      let xhr = new XMLHttpRequest();
-      xhr.responseType = 'blob';
-      xhr.onload = function () {
-          let a = document.createElement('a');
-          a.href = window.URL.createObjectURL(xhr.response);
-          a.download = 'image.png';
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-      };
-      xhr.open('GET', img);
-      xhr.send();
-      filebartocanvas(fileArray[0][0])
-    }
 
-    document.getElementById('id_canvas').style = 'display: inline;'
+      document.getElementById('id_canvas').style = 'display: inline;'
+    }
   }
   link.addEventListener("click", download);
   return link;
@@ -1260,10 +1263,10 @@ document.onkeydown = KeyPress;
 // Смена темы
 controls.theme = function(cx) {
     var new_theme = elt("select", {class: `btn ${localTheme}btn`, id:'id_theme'});
-    var themes = ['Light', 'Dark'];
+    var themes = ['Светлая', 'Тёмная'];
     themes.forEach(function(theme) {
         if(flag_for_select) {
-            if(theme=='Dark'){
+            if(theme=='Тёмная'){
                 new_theme.appendChild(elt("option", {value:theme, selected:'selected'},"Тёмная"));
                 flag_for_select = false;
             }else{new_theme.appendChild(elt("option",{value:theme},"Светлая"));}
@@ -1275,8 +1278,8 @@ controls.theme = function(cx) {
 
 
     new_theme.addEventListener("change", function(){
-      if (new_theme.value == 'Light'){
-        localStorage.setItem('theme', 'Light')
+      if (new_theme.value == 'Светлая'){
+        localStorage.setItem('theme', 'Светлая')
 
         // Body, Toolbar, Filebar, Footer
         document.getElementById('body').classList.remove('darkBody');
@@ -1325,8 +1328,8 @@ controls.theme = function(cx) {
           document.getElementById(`id_filebar_a${i}`).classList.add('lightbtn_a');
         }
       }
-      if (new_theme.value == 'Dark'){
-        localStorage.setItem('theme', 'Dark')
+      if (new_theme.value == 'Тёмная'){
+        localStorage.setItem('theme', 'Тёмная')
 
         // Body, Toolbar, Filebar, Footer
         document.getElementById('body').classList.remove('lightBody');
