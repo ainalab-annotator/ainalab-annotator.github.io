@@ -178,7 +178,7 @@ controls.openFile = function(cx) {
   input.addEventListener("change", function() {
     
     // Удаление надписи
-    if(flag_for_remove_text){
+    if(flag_for_remove_text && countFile == 0){
     document.getElementById("id_text_upload_file1").remove();
     document.getElementById("id_text_upload_file2").remove();
     flag_for_remove_text = false;
@@ -881,7 +881,6 @@ async function loadImageURL(cx, url, commands) {
             }
             cx.globalCompositeOperation = "source-over"
         }
-
         if(commands[i][0] == 'Shears'){
           let x1 = commands[i][1];
           let y1 = commands[i][2];
