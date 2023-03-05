@@ -93,8 +93,25 @@ function createPaint(parent) {
     var buttonREM = elt("button", {href: '#', onClick:'remphoto()', class:`btn ${localTheme}btn btn_updownrem`, id:'id_buttonREM'}, "×")
     var filebar = elt("div", {class: `filebar ${localTheme}ToolFileFooterbar`, id: 'id_filebar'}, allfiles,buttonUP, buttonDOWN, buttonREM, infobar);
 
+
+    // switch color
+    var exitswitch = elt("button", {class: `btn ${localTheme}btn`, id: 'id_exitswitch'}, 'Заменить')
+    var textswitch = elt('span', {id: 'id_textswitch'}, 'Замена одного цвета на другой:')
+    var firstcolor = elt("select", {class: `btn ${localTheme}btn`, id: 'id_firstcolor'})
+    for(let i in dict){
+      firstcolor.appendChild(elt("option", {value: i, style:`background: rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]});`}, i));
+    }
+
+    var secondcolor = elt("select", {class: `btn ${localTheme}btn`, id: 'id_secondcolor'})
+    for(let i in dict){
+      secondcolor.appendChild(elt("option", {value: i, style:`background: rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]});`}, i));
+    }
+
+
+    var windowswitch = elt("div", {class: `${localTheme}ToolFileFooterbar`, id: "id_windowswitch"}, textswitch, firstcolor, secondcolor, exitswitch)
+
     // Объединение Filebar и Canvas
-    var panel = elt("div", {class: "filebar_and_canvas"}, filebar, canvas2, canvas, secretcanvas, secretcanvas2, secretcanvas3, shearscanvas, shearscanvas2, shearscanvas3, cursor);
+    var panel = elt("div", {class: "filebar_and_canvas"}, filebar, canvas2, canvas, secretcanvas, secretcanvas2, secretcanvas3, shearscanvas, shearscanvas2, shearscanvas3, cursor, windowswitch);
 
     // (Footer)
     // var text_footer = elt('div',{id:'id_text_footer'}, '© Aina 2023');
@@ -123,7 +140,11 @@ function createPaint(parent) {
         rgb = cx.getImageData(event.offsetX, event.offsetY ,1,1).data
       }
       for(i in dict){
-        if((Math.abs(rgb[0] - dict[i][0]) <= 5) && (Math.abs(rgb[1] - dict[i][1]) <= 5) && (Math.abs(rgb[2] - dict[i][2]) <= 5)){
+        if(rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0){
+          document.getElementById('id_number_part').textContent = `Деталь: `
+          break;
+        }
+        if((Math.abs(rgb[0] - dict[i][0]) <= 3) && (Math.abs(rgb[1] - dict[i][1]) <= 3) && (Math.abs(rgb[2] - dict[i][2]) <= 3)){
           document.getElementById('id_number_part').textContent = `Деталь: ${i}`
           break;
         }
@@ -278,6 +299,7 @@ function trackDrag(onMove, onEnd) {
 // Кисть
 tools.Line = function(event, cx, onEnd) {
   cx.lineCap = "round";
+  cx.lineJoin = "round"
   cx.shadowOffsetX = 0
   cx.shadowOffsetY = 0
   cx.shadowBlur = 0
@@ -345,6 +367,7 @@ controls.brushSize = function(cx) {
     select.appendChild(elt("option", {value: size},
                            size + " px"));
   });
+  // событие выбора
   select.addEventListener("change", function() {
     cx.lineWidth = select.value;
     global_size = select.value;
@@ -370,17 +393,18 @@ controls.pipe = function(cx) {
         document.getElementById('id_pipe').style = "color: grey;"
         cx.canvas.onmousedown = (event) => {
           let rgb;
-          let getI = cx.getImageData(event.offsetX, event.offsetY, 5,5).data;
-          let getI2 = cx2.getImageData(event.offsetX, event.offsetY, 5,5).data;
+          let getI = cx.getImageData(event.offsetX, event.offsetY, 1,1).data;
+          let getI2 = cx2.getImageData(event.offsetX, event.offsetY, 1,1).data;
           if(getI[0] == 0 && getI[1] == 0 && getI[2] == 0 && getI[3] == 0){
             rgb = [getI2[0], getI2[1], getI2[2]]
           }else{
             rgb = [getI[0], getI[1], getI[2]]
           }
+          // console.log(rgb)
           cx.canvas.onmousedown = null;
           flag_for_pipe = false;
           for(i in dict){
-            if((Math.abs(rgb[0] - dict[i][0]) <= 5) && (Math.abs(rgb[1] - dict[i][1]) <= 5) && (Math.abs(rgb[2] - dict[i][2]) <= 5)){
+            if((Math.abs(rgb[0] - dict[i][0]) <= 2) && (Math.abs(rgb[1] - dict[i][1]) <= 2) && (Math.abs(rgb[2] - dict[i][2]) <= 2)){
     
               cx.fillStyle = `rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]})`;
               cx.strokeStyle = `rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]})`;
@@ -468,7 +492,7 @@ var dict = {"1":[0,0,0],
   "87": [175, 159, 147],
   "88": [255, 255, 41],
   "89": [246, 215, 0],
-  "90": [255, 0, 0],
+  "90": [255, 0, 10],
   "91": [103, 46, 37],
   "92": [19, 128, 69],
   "93": [231, 60, 69],
@@ -490,11 +514,26 @@ var dict = {"1":[0,0,0],
   "109": [40, 50, 5]};
 
 
-const dict2 = {}
+const dict2 = {};
 
 Object.entries(dict).forEach(([key, value]) => {
   dict2[value] = key
 })
+
+const dict3 = {};
+
+Object.entries(dict).forEach(([key, value]) => {
+  dict3[value] = [Number(key), 0, 0]
+})
+
+const dict4 = {};
+
+Object.entries(dict).forEach(([key, value]) => {
+  dict4[[Number(key), 0, 0]] = value
+})
+
+// console.log(dict3)
+// console.log(dict4)
 
 controls.color = function(cx) {
   var select = elt("select", {class: `btn ${localTheme}btn`, id:'id_color'});
@@ -718,10 +757,115 @@ controls.clear = function(cx) {
     return link_new;
 };
 
+// Detail
 var part_number = null;
 controls.number = function(cx){
   var number_part = elt('span', {id: "id_number_part"}, `Деталь: `)
   return number_part;
+}
+
+// Color switch
+var flag_for_switch_btn = false;
+var array_for_switch = [];
+var flag_for_switch = false;
+controls.switchcolor = function(cx){
+  var colorswitch = elt('button', {class: `btn ${localTheme}btn`, id: 'id_switchcolor'}, 'Замена');
+  function switchcolor(){
+    if(flag_for_switch){
+      document.getElementById("id_windowswitch").style = 'display: none';
+      flag_for_switch = false;
+    }
+    else{
+        document.getElementById("id_windowswitch").style = 'display: block';
+        document.addEventListener('click', (event) => {
+          if(window.event.target.id == "id_switchcolor"){
+          }else if(window.event.target.id != "id_windowswitch" && window.event.target.id != "id_exitswitch" && window.event.target.id != "id_firstcolor" && window.event.target.id != "id_secondcolor" && window.event.target.id != "id_textswitch")
+            document.getElementById("id_windowswitch").style = 'display: none';
+            flag_for_switch = false;
+        })
+        flag_for_switch = true;
+        if(countFile != 0){
+        let colorswitch = document.getElementById('id_exitswitch')
+        colorswitch.addEventListener('click', ()=>{
+          let color1 = dict[document.getElementById('id_firstcolor').value];
+          let color2 = dict[document.getElementById('id_secondcolor').value];
+
+
+          var RAINBOW = cx2.getImageData(0,0,cx.canvas.width,cx.canvas.height);
+          var rc = RAINBOW.data
+    
+          for(let i = 0; i<rc.length;i+=4){
+            if(Math.abs(rc[i] - color1[0]) <= 5 && Math.abs(rc[i+1] - color1[1]) <= 5 && Math.abs(rc[i+2] - color1[2]) <= 5){
+              rc[i] = color2[0];
+              rc[i+1] = color2[1];
+              rc[i+2] = color2[2];
+              rc[i+3] = 255;
+            }
+          }
+          cx2.putImageData(RAINBOW, 0, 0);
+          var RAINBOW2 = RAINBOW;
+
+          var RAINBOW = cx.getImageData(0,0,x,y);
+          var rc = RAINBOW.data
+    
+          var temp = {};
+          for(let i = 0; i<rc.length;i+=4){
+            let colors = [rc[i], rc[i+1], rc[i+2]]
+            if(colors in dict2){
+              // pass
+            }else{
+              if(colors in temp){
+                rc[i] = temp[colors][0]
+                rc[i+1] = temp[colors][1]
+                rc[i+2] = temp[colors][2]
+                rc[i+3] = 255;
+              }
+              else{
+                for(key in dict){
+                  if(Math.abs(colors[0] - dict[key][0]) <= 10 && Math.abs(colors[1] - dict[key][1]) <= 10 && Math.abs(colors[2] - dict[key][2]) <= 10){
+                    temp[colors] = dict[key]
+
+                    rc[i] = temp[colors][0]
+                    rc[i+1] = temp[colors][1]
+                    rc[i+2] = temp[colors][2]
+                    rc[i+3] = 255;
+                  }
+                  else{
+                    // console.log('bitii pixel ne popal')
+                  }
+                }
+              }
+            }
+          }
+          // console.log(temp)
+          cx.putImageData(RAINBOW, 0, 0);
+
+
+          // алгоритм меняет цвет на новый
+          RAINBOW = cx.getImageData(0,0,cx.canvas.width,cx.canvas.height);
+          rc = RAINBOW.data
+          for(let i = 0; i<rc.length;i+=4){
+            if(Math.abs(rc[i] - color1[0]) <= 5 && Math.abs(rc[i+1] - color1[1]) <= 5 && Math.abs(rc[i+2] - color1[2]) <= 5){
+              if(color1[0] == 0 && color1[1] == 0 && color1[2] == 0){
+                //skip
+              }else{
+                rc[i] = color2[0];
+                rc[i+1] = color2[1];
+                rc[i+2] = color2[2];
+                rc[i+3] = 255;
+              }
+            }
+          }
+          cx.putImageData(RAINBOW, 0, 0);
+
+          fileArray[nowFile][3].push(['Switch', RAINBOW, RAINBOW2]);
+          document.getElementById("id_windowswitch").style = 'display: none';
+        }) 
+      }
+    }
+  }
+  colorswitch.addEventListener('click', switchcolor)
+  return colorswitch;
 }
 
 function checkorder(){
@@ -820,18 +964,18 @@ async function loadImageURL(cx, url, commands) {
       x = image.width;
       y = image.height;
 
-      if(x >= 1300){
-        while(x >= 1300){
-          x -= (x*1.1-x)
-          y -= (y*1.1-y)
-        }
-      }
-      if(y >= 610){
-        while(y >= 610){
-          x -= (x*1.1-x)
-          y -= (y*1.1-y)
-        }
-      }
+      // if(x >= 1300){
+      //   while(x >= 1300){
+      //     x -= (x*1.1-x)
+      //     y -= (y*1.1-y)
+      //   }
+      // }
+      // if(y >= 610){
+      //   while(y >= 610){
+      //     x -= (x*1.1-x)
+      //     y -= (y*1.1-y)
+      //   }
+      // }
 
       cx.canvas.width = x;
       cx.canvas.height = y;
@@ -845,7 +989,10 @@ async function loadImageURL(cx, url, commands) {
       var fixlineWidth = cx.lineWidth
       var fixstrokeStyle = cx.strokeStyle
       for(let i=0; i<commands.length; i++){
-
+          if(commands[i][0] == 'Switch'){
+            cx2.putImageData(commands[i][2], 0, 0)
+            cx.putImageData(commands[i][1],0,0)
+          }
           if(commands[i][0] == 'Line'){
               cx.shadowOffsetX = 0
               cx.shadowOffsetY = 0
@@ -948,33 +1095,32 @@ async function loadImageURL2(cx2, url) {
 
       cx3.drawImage(image,0,0,x,y);
 
+      // с красного в цвета (машина)
       var RED = cx3.getImageData(0,0,x,y);
       var redColors = RED.data
 
       for(let i = 0; i<redColors.length;i+=4){
-
         if(String(redColors[i]) in dict){
           let number = String(redColors[i]);
           redColors[i] = dict[number][0]
           redColors[i+1] = dict[number][1]
           redColors[i+2] = dict[number][2]
-          
         }
       }
       cx3.putImageData(RED, 0, 0);
 
-      if(x >= 1300){
-        while(x >= 1300){
-          x -= (x*1.1-x)
-          y -= (y*1.1-y)
-        }
-      }
-      if(y >= 610){
-        while(y >= 610){
-          x -= (x*1.1-x)
-          y -= (y*1.1-y)
-        }
-      }
+      // if(x >= 1300){
+      //   while(x >= 1300){
+      //     x -= (x*1.1-x)
+      //     y -= (y*1.1-y)
+      //   }
+      // }
+      // if(y >= 610){
+      //   while(y >= 610){
+      //     x -= (x*1.1-x)
+      //     y -= (y*1.1-y)
+      //   }
+      // }
       cx2.canvas.width = x;
       cx2.canvas.height = y;
 
@@ -1022,18 +1168,18 @@ await new Promise(resolve => {
     x = image.width;
     y = image.height;
 
-    if(x >= 1300){
-      while(x >= 1300){
-        x -= (x*1.1-x)
-        y -= (y*1.1-y)
-      }
-    }
-    if(y >= 610){
-      while(y >= 610){
-        x -= (x*1.1-x)
-        y -= (y*1.1-y)
-      }
-    }
+    // if(x >= 1300){
+    //   while(x >= 1300){
+    //     x -= (x*1.1-x)
+    //     y -= (y*1.1-y)
+    //   }
+    // }
+    // if(y >= 610){
+    //   while(y >= 610){
+    //     x -= (x*1.1-x)
+    //     y -= (y*1.1-y)
+    //   }
+    // }
 
     secretcx.canvas.width = x;
     secretcx.canvas.height = y;
@@ -1045,17 +1191,16 @@ await new Promise(resolve => {
     secretcx.fillStyle = color;
     secretcx.strokeStyle = color;
     secretcx.lineWidth = size;
-    cx.shadowOffsetX = 0
-    cx.shadowOffsetY = 0
-    cx.shadowBlur = 0
+
     var fixlineWidth = secretcx.lineWidth
     var fixstrokeStyle = secretcx.strokeStyle
+    secretcx.imageSmoothingEnabled = false;
     for(let i=0; i<commands.length; i++){
-
+      if(commands[i][0] == 'Switch'){
+        secretcx2.putImageData(commands[i][2], 0, 0)
+        secretcx.putImageData(commands[i][1],0,0)
+      }
       if(commands[i][0] == 'Line'){
-        cx.shadowOffsetX = 0
-        cx.shadowOffsetY = 0
-        cx.shadowBlur = 0
         secretcx.lineWidth = commands[i][1];
         secretcx.strokeStyle = commands[i][2];
         secretcx.lineCap = "round";
@@ -1068,9 +1213,6 @@ await new Promise(resolve => {
         }
       }
       if(commands[i][0] == 'Erase'){
-        cx.shadowOffsetX = 0
-        cx.shadowOffsetY = 0
-        cx.shadowBlur = 0
         secretcx.globalCompositeOperation = "destination-out";
         secretcx.lineWidth = commands[i][1];
         secretcx.strokeStyle = commands[i][2];
@@ -1127,38 +1269,193 @@ await new Promise(resolve => {
         
       }
 
-
       
     }
     secretcx.lineWidth = fixlineWidth;
     secretcx.strokeStyle = fixstrokeStyle;
 
-    var RAINBOW = secretcx.getImageData(0,0,x,y);
+    // алгоритм заменяет все цвета машины на красные
+    var RAINBOW = secretcx2.getImageData(0,0,x,y);
       var rainbowColors = RAINBOW.data
       for(let i = 0; i<rainbowColors.length;i+=4){
         let ourcolor = [rainbowColors[i], rainbowColors[i+1], rainbowColors[i+2]]
         if(ourcolor in dict2){
           let number = ourcolor;
-          rainbowColors[i] = Number(dict2[number])
+          if(Number(dict2[number]) == 1){rainbowColors[i] = 0}
+          else{rainbowColors[i] = Number(dict2[number])}
           rainbowColors[i+1] = 0;
           rainbowColors[i+2] = 0;
-        }
-        else{
-          rainbowColors[i] = 0;
-          rainbowColors[i+1] = 0;
-          rainbowColors[i+2] = 0;
-          rainbowColors[i+3] = 0;
+          rainbowColors[i+3] = 255;
         }
       }
 
+      secretcx2.putImageData(RAINBOW, 0, 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      // алгоритм заменяет все цвета на красные
+      var RAINBOW = secretcx.getImageData(0,0,x,y);
+      var rainbowColors = RAINBOW.data
+      for(let i = 0; i<rainbowColors.length;i+=4){
+        let ourcolor = [rainbowColors[i], rainbowColors[i+1], rainbowColors[i+2]]
+        // console.log(ourcolor)
+        if(ourcolor in dict2 && dict2[ourcolor] != "1"){
+          let number = ourcolor;
+          if(Number(dict2[number]) == 1){rainbowColors[i] == 0}
+          else{rainbowColors[i] = Number(dict2[number])}
+          rainbowColors[i+1] = 0;
+          rainbowColors[i+2] = 0;
+          rainbowColors[i+3] = 255;
+        }
+      }
       secretcx.putImageData(RAINBOW, 0, 0);
+
+
+
+
+
+
+
+
+
+      // алгоритм заменяет битые пиксели на нормальные
+      var RAINBOW = secretcx.getImageData(0,0,x,y);
+      var rc = RAINBOW.data
+      
+      for(let i = 0; i<rc.length;i+=4){
+        let ourcolor = [rc[i], rc[i+1], rc[i+2]]
+        let temp = [];
+        // console.log(ourcolor)
+        if(!(ourcolor in dict4) || rc[i+3] != 255){
+          if(rc[i] == 0 && rc[i+1] == 0 && rc[i+2] == 0) continue;
+          if(ourcolor in dict4 && rc[i+3] == 255) continue;
+
+          // console.log(ourcolor, rc[i+3])
+
+          // проверка правого пикселя на пригодность для замены
+
+          // условие
+          if([rc[i+4], rc[i+5], rc[i+6]] in dict4 && rc[i+7] == 255){
+            temp.push([[rc[i+4], rc[i+5], rc[i+6]], dict4[[rc[i+4], rc[i+5], rc[i+6]]]])
+            // console.log('right =', [[rc[i+4], rc[i+5], rc[i+6]], dict4[[rc[i+4], rc[i+5], rc[i+6]]]])
+          }
+
+          // проверка левого пикселя на пригодность для замены
+
+          // условие
+          if([rc[i-4], rc[i-3], rc[i-2]] in dict4 && rc[i-1] == 255){
+            temp.push([[rc[i-4], rc[i-3], rc[i-2]], dict4[[rc[i-4], rc[i-3], rc[i-2]]]])
+            // console.log('left =', [[rc[i-4], rc[i-3], rc[i-2]], dict4[[rc[i-4], rc[i-3], rc[i-2]]]])
+
+          }
+
+          // проверка верхнего пикселя на пригодность для замены
+
+          // условие
+          if([rc[i-(x*4)], rc[i-(x*4)+1], rc[i-(x*4)+2]] in dict4 && rc[i-(x*4)+3] == 255){
+            temp.push([[rc[i-(x*4)], rc[i-(x*4)+1], rc[i-(x*4)+2]], dict4[[rc[i-(x*4)], rc[i-(x*4)+1], rc[i-(x*4)+2]]]])
+            // console.log('up =', [[rc[i-(x*4)], rc[i-(x*4)+1], rc[i-(x*4)+2]], dict4[[rc[i-(x*4)], rc[i-(x*4)+1], rc[i-(x*4)+2]]]])
+
+          }
+
+          // проверка нижнего пикселя на пригодность для замены
+
+          // условие
+          if([rc[i+(x*4)], rc[i+(x*4)+1], rc[i+(x*4)+2]] in dict4 && rc[i+(x*4)+3] == 255){
+            temp.push([[rc[i+(x*4)], rc[i+(x*4)+1], rc[i+(x*4)+2]], dict4[[rc[i+(x*4)], rc[i+(x*4)+1], rc[i+(x*4)+2]]]])
+            // console.log('down =', [[rc[i+(x*4)], rc[i+(x*4)+1], rc[i+(x*4)+2]], dict4[[rc[i+(x*4)], rc[i+(x*4)+1], rc[i+(x*4)+2]]]])
+
+          }
+          // console.log(temp, rc[i+3])
+          
+
+          // поиск наиболее подходящего пикселя из всех возможных
+          if(temp.length == 0){
+            rc[i] = 0
+            rc[i+1] = 0
+            rc[i+2] = 0
+            rc[i+3] = 0
+          }else{
+            let minabs = 999999999;
+            let new_color;
+            for(let j = 0;j<temp.length;j++){
+              if(minabs > Math.abs(rc[i]-temp[j][1][0]) + Math.abs(rc[i+1]-temp[j][1][1]) + Math.abs(rc[i+2]-temp[j][1][2])){
+                minabs = Math.abs(rc[i]-temp[j][1][0]) + Math.abs(rc[i+1]-temp[j][1][1]) + Math.abs(rc[i+2]-temp[j][1][2])
+                new_color = temp[j][0];
+                // console.log(new_color)
+              }
+            }
+            // console.log(new_color[0], ourcolor)
+            if(Number(new_color[0]) == 1){rc[i] = 0}
+            else{rc[i] = Number(new_color[0])}
+            rc[i+1] = 0
+            rc[i+2] = 0
+            rc[i+3] = 255
+          // }
+          }
+        }
+      }
+      secretcx.putImageData(RAINBOW, 0, 0);
+
 
 
 
     secretcx3.canvas.width = x;
     secretcx3.canvas.height = y;
+    secretcx3.imageSmoothingEnabled = false;
     secretcx3.drawImage(secretcx2.canvas,0,0,x,y);
+    secretcx3.imageSmoothingEnabled = false;
     secretcx3.drawImage(secretcx.canvas,0,0,x,y);
+    secretcx3.imageSmoothingEnabled = false;
+
 
    
     resolve();
@@ -1169,8 +1466,6 @@ await new Promise(resolve => {
 
 controls.save = function(cx) {
   var link = elt("button", {class: `btn ${localTheme}btn`, id: "id_save"}, "Сохранить");
-
-
   async function download() {
     if(countFile != 0){
       document.getElementById('id_secretcanvas').style = 'display: none;'
@@ -1196,7 +1491,7 @@ controls.save = function(cx) {
           saveAs(content, 'out.zip')
         })
         filebartocanvas(fileArray[fornowFile][0])
-      }else{
+        }else{
         await secretfilebartocanvas(fileArray[0][0]);
         let img = secretcx3.canvas.toDataURL("image/png");
         let xhr = new XMLHttpRequest();
@@ -1204,7 +1499,7 @@ controls.save = function(cx) {
         xhr.onload = function () {
             let a = document.createElement('a');
             a.href = window.URL.createObjectURL(xhr.response);
-            a.download = `${fileArray[0][0]}_new.png`;
+            a.download = [fileArray[0][0].slice(0, fileArray[0][0].length-4), "_new", fileArray[0][0].slice(fileArray[0][0].length-4)].join('');
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
@@ -1232,6 +1527,18 @@ function dataURLtoBlob(dataurl) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 function KeyPress(e) {
     var evtobj = window.event? event : e
     if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
@@ -1246,19 +1553,296 @@ function KeyPress(e) {
         filebartocanvas(fileArray[nowFile][0]);
         e.preventDefault();
     }
+
     if(evtobj.keyCode == 40 || evtobj.keyCode == 39){
       if(nowFile!=countFile-1){
         filebartocanvas(fileArray[nowFile+1][0])
       }
     }
+
     if(evtobj.keyCode == 38 || evtobj.keyCode == 37){
       if(nowFile!=0){
         filebartocanvas(fileArray[nowFile-1][0])
       }
     }
+    if(evtobj.keyCode == 88){
+      if(countFile != 0){
+        var color = cx.fillStyle, size = cx.lineWidth;
+        if(flag_for_shears){
+          shearscx.canvas.width = 0;
+          shearscx.canvas.height = 0;
+          flag_for_shears = false;
+          document.getElementById('id_shears').style = "color: white;"
+          document.getElementById('id_shears').style.removeProperty('color');
+        }
+        else{
+          document.getElementById('id_shears').style = "color: grey;"
+
+          flag_for_shears = true;
+          shearscx.canvas.width = cx.canvas.width;
+          shearscx.canvas.height = cx.canvas.height;
+          shearscx.canvas.onmousedown = (event) => {
+            x1 = event.offsetX;
+            y1 = event.offsetY;
+            shearscx.canvas.onmousemove = (event) =>{
+              shearscx.clearRect(0,0,cx.canvas.width, cx.canvas.height)
+
+              shearscx.beginPath()
+              shearscx.moveTo(x1,y1);
+              shearscx.lineTo(event.offsetX, y1)
+              shearscx.stroke()
+              shearscx.closePath();
+
+              shearscx.beginPath()
+              shearscx.moveTo(x1,y1);
+              shearscx.lineTo(x1, event.offsetY)
+              shearscx.stroke()
+              shearscx.closePath();
+
+              
+              shearscx.beginPath()
+              shearscx.moveTo(x1, event.offsetY);
+              shearscx.lineTo(event.offsetX, event.offsetY)
+              shearscx.stroke()
+              shearscx.closePath();
+
+              shearscx.beginPath()
+              shearscx.moveTo(event.offsetX, y1);
+              shearscx.lineTo(event.offsetX, event.offsetY)
+              shearscx.stroke()
+              shearscx.closePath();
+            }
+            shearscx.canvas.onmouseup = (event) => {
+              shearscx.canvas.onmousemove = null;
+              x2 = event.offsetX;
+              y2 = event.offsetY;
+              if(x1 == x2 && y1 ==y2){
+                shearscx.canvas.width = 0;
+                shearscx.canvas.height = 0;
+                flag_for_shears = false;
+                return
+              }
+              shearscx.lineTo(x2,y2);
+              shearscx.stroke();
+
+
+  
+  
+              let shearsWidth = Math.abs(x2-x1);
+              let shearsHeight = Math.abs(y2-y1);
+              
+              x1 = Math.min(x1,x2);
+              y1 = Math.min(y1,y2);
+  
+              shearscx2.canvas.width = shearsWidth;
+              shearscx2.canvas.height = shearsHeight;
+  
+              shearscx3.canvas.width = shearsWidth;
+              shearscx3.canvas.height = shearsHeight;
+              
+              shearscx2.drawImage(cx2.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
+              shearscx3.drawImage(cx.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
+  
+              cx2.canvas.width = shearsWidth;
+              cx2.canvas.height = shearsHeight;
+  
+              cx.canvas.width = shearsWidth;
+              cx.canvas.height = shearsHeight;
+  
+              cx2.drawImage(shearscx2.canvas, 0,0,shearsWidth, shearsHeight)
+              cx.drawImage(shearscx3.canvas, 0,0,shearsWidth, shearsHeight)
+  
+              cx.fillStyle = color;
+              cx.strokeStyle = color;
+              cx.lineWidth = size;
+  
+              shearscx.canvas.width = 0;
+              shearscx.canvas.height = 0;
+  
+              shearscx2.canvas.width = 0;
+              shearscx2.canvas.height = 0;
+  
+              shearscx3.canvas.width = 0;
+              shearscx3.canvas.height = 0;
+  
+              fileArray[nowFile][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+
+              flag_for_shears = false;
+              document.getElementById('id_shears').style = "color: white;"
+              document.getElementById('id_shears').style.removeProperty('color');
+            }
+            shearscx.canvas.onmousedown = (event) => {
+
+              shearscx.canvas.onmousemove = null;
+              x2 = event.offsetX;
+              y2 = event.offsetY;
+              shearscx.lineTo(x2,y2);
+              shearscx.stroke();
+
+              if(x1 == x2 && y1 ==y2){
+                shearscx.canvas.width = 0;
+                shearscx.canvas.height = 0;
+                flag_for_shears = false;
+                return
+              }
+  
+  
+              let shearsWidth = Math.abs(x2-x1);
+              let shearsHeight = Math.abs(y2-y1);
+              
+              x1 = Math.min(x1,x2);
+              y1 = Math.min(y1,y2);
+  
+              shearscx2.canvas.width = shearsWidth;
+              shearscx2.canvas.height = shearsHeight;
+  
+              shearscx3.canvas.width = shearsWidth;
+              shearscx3.canvas.height = shearsHeight;
+              
+              shearscx2.drawImage(cx2.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
+              shearscx3.drawImage(cx.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
+  
+              cx2.canvas.width = shearsWidth;
+              cx2.canvas.height = shearsHeight;
+  
+              cx.canvas.width = shearsWidth;
+              cx.canvas.height = shearsHeight;
+  
+              cx2.drawImage(shearscx2.canvas, 0,0,shearsWidth, shearsHeight)
+              cx.drawImage(shearscx3.canvas, 0,0,shearsWidth, shearsHeight)
+  
+              cx.fillStyle = color;
+              cx.strokeStyle = color;
+              cx.lineWidth = size;
+  
+              shearscx.canvas.width = 0;
+              shearscx.canvas.height = 0;
+  
+              shearscx2.canvas.width = 0;
+              shearscx2.canvas.height = 0;
+  
+              shearscx3.canvas.width = 0;
+              shearscx3.canvas.height = 0;
+  
+              fileArray[nowFile][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+              flag_for_shears = false;
+
+              document.getElementById('id_shears').style.removeProperty('color');
+            }
+
+          }
+        }
+      }
+    }
+    if(evtobj.keyCode == 67){if(countFile!=0){
+      if(flag_for_pipe){ 
+        document.getElementById('id_pipe').style = "color: white;"
+        document.getElementById('id_pipe').style.removeProperty('color');
+        flag_for_pipe = false;}
+      else{
+        flag_for_pipe = true;
+        document.getElementById('id_pipe').style = "color: grey;"
+        cx.canvas.onmousedown = (event) => {
+          let rgb;
+          let getI = cx.getImageData(event.offsetX, event.offsetY, 5,5).data;
+          let getI2 = cx2.getImageData(event.offsetX, event.offsetY, 5,5).data;
+          if(getI[0] == 0 && getI[1] == 0 && getI[2] == 0 && getI[3] == 0){
+            rgb = [getI2[0], getI2[1], getI2[2]]
+          }else{
+            rgb = [getI[0], getI[1], getI[2]]
+          }
+          cx.canvas.onmousedown = null;
+          flag_for_pipe = false;
+          for(i in dict){
+            if((Math.abs(rgb[0] - dict[i][0]) <= 5) && (Math.abs(rgb[1] - dict[i][1]) <= 5) && (Math.abs(rgb[2] - dict[i][2]) <= 5)){
+    
+              cx.fillStyle = `rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]})`;
+              cx.strokeStyle = `rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]})`;
+
+              global_color = `rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]})`;
+              document.getElementById('id_color').value = i;
+              break;
+            }
+          }
+          document.getElementById('id_pipe').style = "color: white;"
+          document.getElementById('id_pipe').style.removeProperty('color');
+        }
+      }
+    }}
+    if(evtobj.keyCode == 66){
+      if(countFile != 0){
+        cx.clearRect(0, 0, cx.canvas.width, cx.canvas.height);
+        let array_for_shears = [];
+        for(let i=0;i<fileArray[nowFile][3].length;i++){
+          if(fileArray[nowFile][3][i][0] == 'Shears'){
+            array_for_shears.push(fileArray[nowFile][3][i])
+          }
+        }
+        fileArray[nowFile][3] = array_for_shears;
+      }
+    }
+
+    if(evtobj.keyCode == 69){
+      if(countFile != 0){
+        if(document.getElementById('id_tool').value == "Линия") document.getElementById('id_tool').value = "Ластик"
+        else{document.getElementById('id_tool').value = "Линия" }
+      }
+    }
+
+    if(evtobj.keyCode == 67){}
+    if(evtobj.keyCode == 67){}
+    if(evtobj.keyCode == 67){}
+
 
 }       
 document.onkeydown = KeyPress;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Смена темы
 controls.theme = function(cx) {
@@ -1292,8 +1876,22 @@ controls.theme = function(cx) {
         document.getElementById('id_allfiles').classList.add('lightToolFileFooterbar');
         document.getElementById('id_infobar').classList.remove('darkToolFileFooterbar');
         document.getElementById('id_infobar').classList.add('lightToolFileFooterbar');
+        document.getElementById('id_windowswitch').classList.remove('darkToolFileFooterbar')
+        document.getElementById('id_windowswitch').classList.add('lightToolFileFooterbar')
 
         // Buttons
+        document.getElementById('id_firstcolor').classList.remove('darkbtn')
+        document.getElementById('id_firstcolor').classList.add('lightbtn')
+
+        document.getElementById('id_secondcolor').classList.remove('darkbtn')
+        document.getElementById('id_secondcolor').classList.add('lightbtn')
+
+        document.getElementById('id_exitswitch').classList.remove('darkbtn')
+        document.getElementById('id_exitswitch').classList.add('lightbtn')
+
+        document.getElementById('id_switchcolor').classList.add('lightbtn')
+        document.getElementById('id_switchcolor').classList.remove('darkbtn')
+
         document.getElementById('id_pipe').classList.add('lightbtn')
         document.getElementById('id_pipe').classList.remove('darkbtn')
         document.getElementById('id_buttonREM').classList.add('lightbtn')
@@ -1342,8 +1940,22 @@ controls.theme = function(cx) {
         document.getElementById('id_allfiles').classList.add('darkToolFileFooterbar');
         document.getElementById('id_infobar').classList.remove('lightToolFileFooterbar');
         document.getElementById('id_infobar').classList.add('darkToolFileFooterbar');
+        document.getElementById('id_windowswitch').classList.remove('lightToolFileFooterbar')
+        document.getElementById('id_windowswitch').classList.add('darkToolFileFooterbar')
 
         // Buttons
+        document.getElementById('id_firstcolor').classList.remove('lightbtn')
+        document.getElementById('id_firstcolor').classList.add('darkbtn')
+
+        document.getElementById('id_secondcolor').classList.remove('lightbtn')
+        document.getElementById('id_secondcolor').classList.add('darkbtn')
+
+        document.getElementById('id_exitswitch').classList.remove('lightbtn')
+        document.getElementById('id_exitswitch').classList.add('darkbtn')
+
+        document.getElementById('id_switchcolor').classList.remove('lightbtn')
+        document.getElementById('id_switchcolor').classList.add('darkbtn')
+
         document.getElementById('id_pipe').classList.remove('lightbtn')
         document.getElementById('id_pipe').classList.add('darkbtn')
         document.getElementById('id_buttonREM').classList.remove('lightbtn')
