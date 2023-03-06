@@ -822,7 +822,7 @@ controls.switchcolor = function(cx){
               }
               else{
                 for(key in dict){
-                  if(Math.abs(colors[0] - dict[key][0]) <= 10 && Math.abs(colors[1] - dict[key][1]) <= 10 && Math.abs(colors[2] - dict[key][2]) <= 10){
+                  if(Math.abs(colors[0] - dict[key][0]) <= 5 && Math.abs(colors[1] - dict[key][1]) <= 5 && Math.abs(colors[2] - dict[key][2]) <= 5){
                     temp[colors] = dict[key]
 
                     rc[i] = temp[colors][0]
