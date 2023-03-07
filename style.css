@@ -64,7 +64,7 @@ body, html{
    -ms-user-select: none; 
    user-select: none; */
     width: 1470px;
-    /* height:700px; */
+    /* height:1700px; */
 }
 .toolbar{
   display: inline-grid;
@@ -74,6 +74,14 @@ body, html{
   padding: 10px;
   height: 35px;
   border-radius:20px;
+
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0; /* required */
+  bottom:0;
+  left:0;
+  right:0;
+  z-index: 9999999;
 }
 .filebar{
     text-align: center;
@@ -146,11 +154,8 @@ body, html{
 .highlight{
   color: red;
 }
-#id_toolbar{
-  position: sticky;
-  position: -webkit-sticky;
-  top: 0; /* required */
-  z-index: 9999999;
+#id_main{
+  height: 700px;
 }
 #id_save{
   margin-left: 865px;
@@ -317,6 +322,8 @@ option{
 }
 #id_cursor{
   z-index: 99999999;
+  -webkit-filter: invert(100%);
+  /* filter: invert(100%); */
 }
 #id_number_part{
   font-family: Arial, Helvetica, sans-serif;

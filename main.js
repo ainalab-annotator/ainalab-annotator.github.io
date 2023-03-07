@@ -41,7 +41,7 @@ var shearscx;
 var shearscx2;
 var shearscx3;
 var cx3;
-var falg_for_orig;
+var flag_for_orig;
 
 var global_size = 5;
 var cursor = elt('div', {id:'id_cursor'});
@@ -118,15 +118,13 @@ function createPaint(parent) {
     // var text_footer = elt('div',{id:'id_text_footer'}, '© Aina 2023');
     // var footer = elt('div', {class: `footer ${localTheme}ToolFileFooterbar`, id:'id_footer'}, text_footer);
 
-    parent.appendChild(elt("div", null, toolbar, panel)); // Запуск
+    parent.appendChild(elt("div", {id: 'id_main'}, toolbar, panel)); // Запуск
 
     if(confirm('Ок - сайт для маски \nОтмена - сайт для оригинала')){
         flag_for_orig = false;
     }else{
 
     flag_for_orig = true;}
-
-
 
     cursor.id = 'id_cursor';
     cursor.style.cursor = 'none';
@@ -151,10 +149,14 @@ function createPaint(parent) {
       for(i in dict){
         if(rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0){
           document.getElementById('id_number_part').textContent = `Деталь: `
+          cursor.style.border = `5px dotted black`
+
           break;
         }
         if((Math.abs(rgb[0] - dict[i][0]) <= 3) && (Math.abs(rgb[1] - dict[i][1]) <= 3) && (Math.abs(rgb[2] - dict[i][2]) <= 3)){
           document.getElementById('id_number_part').textContent = `Деталь: ${i}`
+          cursor.style.border = `5px dotted rgb(${dict[i][0]}, ${dict[i][1]}, ${dict[i][2]})`
+          
           break;
         }
       }
@@ -170,7 +172,7 @@ function createPaint(parent) {
 
 
       cursor.style.display = 'block';
-      cursor.style.border = `5px dotted white`;
+      // cursor.style.border = `5px dotted white`;
       cursor.style.width =global_size + 'px';
       cursor.style.height = global_size + 'px';
       cursor.style.left = event.clientX -Math.round(global_size/2) -3+ 'px';
@@ -812,7 +814,6 @@ controls.switchcolor = function(cx){
             }
           }
           cx2.putImageData(RAINBOW, 0, 0);
-
           var RAINBOW2 = RAINBOW;
 
           var RAINBOW = cx.getImageData(0,0,x,y);
@@ -1100,14 +1101,15 @@ async function loadImageURL2(cx2, url) {
       x = image.width;
       y = image.height;
 
+      document.getElementById('id_main').style.height = y+100+'px';
+
       cx3.canvas.width = x;
       cx3.canvas.height = y;
 
       cx3.drawImage(image,0,0,x,y);
 
       // с красного в цвета (машина)
-
-      if(!flag_for_orig){
+        if(!flag_for_orig){
           var RED = cx3.getImageData(0,0,x,y);
           var redColors = RED.data
 
