@@ -41,6 +41,7 @@ var shearscx;
 var shearscx2;
 var shearscx3;
 var cx3;
+var falg_for_orig;
 
 var global_size = 5;
 var cursor = elt('div', {id:'id_cursor'});
@@ -118,6 +119,14 @@ function createPaint(parent) {
     // var footer = elt('div', {class: `footer ${localTheme}ToolFileFooterbar`, id:'id_footer'}, text_footer);
 
     parent.appendChild(elt("div", null, toolbar, panel)); // Запуск
+
+    if(confirm('Ок - сайт для маски \nОтмена - сайт для оригинала')){
+        flag_for_orig = false;
+    }else{
+
+    flag_for_orig = true;}
+
+
 
     cursor.id = 'id_cursor';
     cursor.style.cursor = 'none';
@@ -803,6 +812,7 @@ controls.switchcolor = function(cx){
             }
           }
           cx2.putImageData(RAINBOW, 0, 0);
+
           var RAINBOW2 = RAINBOW;
 
           var RAINBOW = cx.getImageData(0,0,x,y);
@@ -1096,18 +1106,21 @@ async function loadImageURL2(cx2, url) {
       cx3.drawImage(image,0,0,x,y);
 
       // с красного в цвета (машина)
-      var RED = cx3.getImageData(0,0,x,y);
-      var redColors = RED.data
 
-      for(let i = 0; i<redColors.length;i+=4){
-        if(String(redColors[i]) in dict){
-          let number = String(redColors[i]);
-          redColors[i] = dict[number][0]
-          redColors[i+1] = dict[number][1]
-          redColors[i+2] = dict[number][2]
-        }
-      }
-      cx3.putImageData(RED, 0, 0);
+      if(!flag_for_orig){
+          var RED = cx3.getImageData(0,0,x,y);
+          var redColors = RED.data
+
+          for(let i = 0; i<redColors.length;i+=4){
+            if(String(redColors[i]) in dict){
+              let number = String(redColors[i]);
+              redColors[i] = dict[number][0]
+              redColors[i+1] = dict[number][1]
+              redColors[i+2] = dict[number][2]
+            }
+          }
+          cx3.putImageData(RED, 0, 0);
+          }
 
       // if(x >= 1300){
       //   while(x >= 1300){
