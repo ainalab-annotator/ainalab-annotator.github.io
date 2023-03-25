@@ -41,7 +41,8 @@ var shearscx;
 var shearscx2;
 var shearscx3;
 var cx3;
-var flag_for_orig;
+var originalcx;
+var flag_for_orig = false;
 
 var global_size = 5;
 var cursor = elt('div', {id:'id_cursor'});
@@ -79,6 +80,9 @@ function createPaint(parent) {
 
     var shearscanvas3 = elt('canvas', {id: 'id_shearscanvas3', width:0, height:0})
     shearscx3 = shearscanvas3.getContext("2d")
+
+    var originalcanvas = elt('canvas', {id: 'id_originalcanvas', width:0, height:0})
+    originalcx = originalcanvas.getContext("2d")
     // Блок хранения инструментов и других кнопок (Toolbar)
     var toolbar = elt("div", {class: `toolbar ${localTheme}ToolFileFooterbar`, id:'id_toolbar'});
     // добавление элементов описанных ниже
@@ -112,19 +116,28 @@ function createPaint(parent) {
     var windowswitch = elt("div", {class: `${localTheme}ToolFileFooterbar`, id: "id_windowswitch"}, textswitch, firstcolor, secondcolor, exitswitch)
 
     // Объединение Filebar и Canvas
-    var panel = elt("div", {class: "filebar_and_canvas"}, filebar, canvas2, canvas, secretcanvas, secretcanvas2, secretcanvas3, shearscanvas, shearscanvas2, shearscanvas3, cursor, windowswitch);
+    var panel = elt("div", {class: "filebar_and_canvas"}, filebar, canvas2, canvas, secretcanvas, secretcanvas2, secretcanvas3, shearscanvas, shearscanvas2, shearscanvas3,originalcanvas, cursor, windowswitch);
 
     // (Footer)
     // var text_footer = elt('div',{id:'id_text_footer'}, '© Aina 2023');
     // var footer = elt('div', {class: `footer ${localTheme}ToolFileFooterbar`, id:'id_footer'}, text_footer);
 
-    parent.appendChild(elt("div", {id: 'id_main'}, toolbar, panel)); // Запуск
+    var progressbar = elt('progress', {id: 'id_progressbar', value: 0, max: 0})
+    var progress_text = elt("div", {id: 'id_progress_text'}, "Скачивание файлов: 0/10")
+    var progress = elt("div", {id:"id_windowprogressbar"}, progress_text, progressbar)
+    parent.appendChild(elt("div", {id: 'id_main'}, progress, toolbar, panel)); // Запуск
 
-    if(confirm('Ок - сайт для маски \nОтмена - сайт для оригинала')){
-        flag_for_orig = false;
-    }else{
+    // if(confirm('Ок - сайт для маски \nОтмена - сайт для оригинала')){
+    //     flag_for_orig = false;
+    // }else{
 
-    flag_for_orig = true;}
+    // flag_for_orig = true;}
+
+    window.onbeforeunload = function(event)
+    {
+        return confirm("Confirm refresh");
+    };
+
 
     cursor.id = 'id_cursor';
     cursor.style.cursor = 'none';
@@ -182,6 +195,7 @@ function createPaint(parent) {
         cursor.style.display = 'none';
       })
     })
+
 }
 
 function upphoto(){
@@ -197,33 +211,50 @@ function downphoto(){
 
 
 // Открытие файлов лейблом в виде кнопки
+var fileArray_name = [];
 var fileArray = []; // Массив хранение информации о файлах (на момент v3.3 имеет вид -> [['name1.png', cx, url], ['name2.png', cx, url], ...])
 var countFile = 0; // Количество файлов в Filebar
 var flag_for_remove_text = true; // флаг используется для удаления надписи "UPLOAD FILE" в Filebar
-
+var shears_json2 = {};
 
 
 var color_a = 'black';
 controls.openFile = function(cx) {
-
-  var input = elt("input", {type:"file", class:`btn ${localTheme}btn`, id:'file-upload', multiple:"",accept:"image/png, image/jpeg"});
+  var input = elt("input", {type:"file", class:`btn ${localTheme}btn`, id:'file-upload', multiple:"",accept:"image/png, image/jpeg, .json"});
   input.addEventListener("change", function() {
-    
-    // Удаление надписи
-    if(flag_for_remove_text && countFile == 0){
-    document.getElementById("id_text_upload_file1").remove();
-    document.getElementById("id_text_upload_file2").remove();
-    flag_for_remove_text = false;
-    }
+
 
     // Заполняем массив (вид - [['name1.png', cx, url, [command]], ['name2.png', cx, url, [command]], ...])
+    let flag_for_json = false;
     if(input.files.length == 0) return;
-    for(let i=0;i<input.files.length;i++){
+      for(let i=0;i<input.files.length;i++){
+        if(input.files[i].name == 'mask.json'){
+          
+          
+          var file_to_read = input.files[i];
+          var fileread = new FileReader();
+          fileread.onload = function(e) {
+            var content = e.target.result;
+            // console.log(content);
+            shears_json2 = JSON.parse(content); // Array of Objects.
+            // console.log(shears_json2)
+          };
+          fileread.readAsText(file_to_read);
+
+          flag_for_json = true;
+          
+          continue;
+        }
+      if(fileArray_name.includes(input.files[i].name)) {continue;}
+      else{fileArray_name.push(input.files[i].name)}
         fileArray.push([input.files[i].name,cx, input.files[i],[]]);
 
         // Создаем для каждого фото свою кнопку для отображения на Filebar
         var a = document.createElement('button');
         a.setAttribute('href','#');
+        
+
+        a.setAttribute('onClick','filebartocanvas("' + `${String(input.files[i].name)}` + '")'); // При нажатии на кнопку включается функция, в которую передаём название файла 
         a.setAttribute('onClick','filebartocanvas("' + `${String(input.files[i].name)}` + '")'); // При нажатии на кнопку включается функция, в которую передаём название файла 
         a.setAttribute('id',`id_filebar_a${countFile+i+1}`)
         if(localStorage.getItem('theme') == 'Светлая'){
@@ -231,7 +262,14 @@ controls.openFile = function(cx) {
         }else{
           a.setAttribute('class', 'btn_a darkbtn_a');
         }
-        a.textContent = String("["+String(i+1)+"] " + input.files[i].name);
+        if(fileArrayOriginal_name.includes(input.files[i].name)){
+
+          a.textContent = '● ' + String("["+String(countFile+i+1)+"] " + input.files[i].name);
+        }else{
+
+          a.textContent = '○ ' + String("["+String(countFile+i+1)+"] " + input.files[i].name);
+        }
+        
         var filebarA = document.querySelector('#id_allfiles');
         filebarA.appendChild(a);
         
@@ -244,12 +282,59 @@ controls.openFile = function(cx) {
     }
     }
     countFile = fileArray.length; // обнавляем информацию о количестве файлов
-    filebartocanvas(fileArray[0][0])
-    checkorder()
-    flag_for_remove_text = true;
+
+    if(flag_for_json && countFile == 0){
+      flag_for_remove_text = false;
+    }else{
+      filebartocanvas(fileArray[0][0])
+      flag_for_remove_text = true;
+      checkorder()
+    }
+
+        // Удаление надписи
+    if(flag_for_remove_text && countFile != 0){
+      document.getElementById("id_text_upload_file1").remove();
+      document.getElementById("id_text_upload_file2").remove();
+      flag_for_remove_text = false;
+    }
+
+    
   });
-  return elt("label", {for:"file-upload", class:`custom-file-upload ${localTheme}btn`, id:"id_file-upload"}, "Открыть" , input);
+  return elt("label", {for:"file-upload", class:`custom-file-upload ${localTheme}btn`, id:"id_file-upload"}, "Маски" , input);
 };
+
+
+var fileArrayOriginal_name = [];
+var fileArrayOriginal = [];
+
+controls.openFileOrig = function(cx) {
+  var input = elt("input", {type:"file", class:`btn ${localTheme}btn`, id:'file-upload2', multiple:"",accept:"image/png, image/jpeg"});
+  input.addEventListener("change", function() {
+    if(input.files.length == 0) return;
+    for(let i=0;i<input.files.length;i++){
+      if(fileArrayOriginal_name.includes(input.files[i].name)) {continue;}
+      else{
+        fileArrayOriginal_name.push(input.files[i].name);
+      }
+      fileArrayOriginal.push([input.files[i].name,cx, input.files[i],[]]);
+    }
+    checkorder()
+
+  })
+
+  return elt("label", {for:"file-upload2", class:`custom-file-upload2 ${localTheme}btn`, id:"id_file-upload2"}, "Оригиналы" , input);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Логотип
@@ -488,7 +573,7 @@ var dict = {"1":[0,0,0],
   "70": [152, 255, 82],
   "71": [117, 68, 177],
   "72": [181, 0, 255],
-  "75": [0, 255, 120],
+  "75": [255, 120, 120],
   "76": [255, 110, 65],
   "77": [0, 95, 57],
   "78": [107, 104, 130],
@@ -563,14 +648,13 @@ controls.color = function(cx) {
   return select;
 };
 
+var shears_json = {};
 var x1,x2,y1,y2;
 var flag_for_shears = false;
 controls.shears = function(cx){
   let i = elt('i',{class:"fa fa-cut"})
     var input = elt("button", {class: `btn ${localTheme}btn`, id:'id_shears'},i);
     function shears(){
-
-
       if(countFile != 0){
         var color = cx.fillStyle, size = cx.lineWidth;
         if(flag_for_shears){
@@ -671,6 +755,12 @@ controls.shears = function(cx){
               shearscx3.canvas.height = 0;
   
               fileArray[nowFile][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+              shears_json[fileArray[nowFile][0]].push([x1, y1, shearsWidth, shearsHeight])
+              for(let i = 0;i<fileArrayOriginal.length;i++){
+                if(fileArray[nowFile][0] == fileArrayOriginal[i][0]){
+                  fileArrayOriginal[i][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+                }
+              }
 
               flag_for_shears = false;
               document.getElementById('id_shears').style = "color: white;"
@@ -730,7 +820,13 @@ controls.shears = function(cx){
               shearscx3.canvas.height = 0;
   
               fileArray[nowFile][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+              shears_json[fileArray[nowFile][0]].push([x1, y1, shearsWidth, shearsHeight])
               flag_for_shears = false;
+              for(let i = 0;i<fileArrayOriginal.length;i++){
+                if(fileArray[nowFile][0] == fileArrayOriginal[i][0]){
+                  fileArrayOriginal[i][3].push(['Shears', x1, y1, shearsWidth, shearsHeight, color, size])
+                }
+              }
 
               document.getElementById('id_shears').style.removeProperty('color');
             }
@@ -754,19 +850,24 @@ controls.clear = function(cx) {
   var link_new = elt("button", {class: `btn ${localTheme}btn`, id:'id_clear'}, i);
     function clear() {
       if(countFile != 0){
-        cx.clearRect(0, 0, cx.canvas.width, cx.canvas.height);
-        let array_for_shears = [];
-        for(let i=0;i<fileArray[nowFile][3].length;i++){
-          if(fileArray[nowFile][3][i][0] == 'Shears'){
-            array_for_shears.push(fileArray[nowFile][3][i])
+        if(confirm("Холст будет очищен")){
+          cx.clearRect(0, 0, cx.canvas.width, cx.canvas.height);
+          let array_for_shears = [];
+          for(let i=0;i<fileArray[nowFile][3].length;i++){
+            if(fileArray[nowFile][3][i][0] == 'Shears'){
+              array_for_shears.push(fileArray[nowFile][3][i])
+            }
           }
+          fileArray[nowFile][3] = array_for_shears;
         }
-        fileArray[nowFile][3] = array_for_shears;
       }
     }
     link_new.addEventListener("click", clear);
     return link_new;
 };
+
+
+
 
 // Detail
 var part_number = null;
@@ -881,13 +982,21 @@ controls.switchcolor = function(cx){
 
 function checkorder(){
   for(let i=0; i<countFile; i++){
-    document.getElementById(`id_filebar_a${i+1}`).textContent = `[${i+1}] ${fileArray[i][0]}`
+    if(fileArrayOriginal_name.includes(fileArray[i][0])){
+
+      document.getElementById(`id_filebar_a${i+1}`).textContent = '● ' + String("["+String(i+1)+"] " + fileArray[i][0]);
+    }else{
+
+      document.getElementById(`id_filebar_a${i+1}`).textContent = '○ ' + String("["+String(i+1)+"] " + fileArray[i][0]);
+    }
   }
 }
+
 
 var remrightnow;
 function remphoto(){
   if(confirm('Выбранное фото будет удалено.')){
+    fileArray_name.splice(nowFile,1)
     fileArray.splice(nowFile,1)
     document.getElementById(`id_filebar_a${nowFile+1}`).remove()
     countFile -=1;
@@ -915,11 +1024,155 @@ function remphoto(){
   }
 }
 
+controls.mask2original = function(cx){
+  let i = elt('i', {class: 'fa fa-eye-slash'})
+  var button = elt('button', {class: `btn ${localTheme}btn`, id:'id_mask2original'}, i)
+  let flag_for_eye = false;
+  button.addEventListener('click', function(){
+    if(flag_for_eye){
+      let i = elt('i', {class: 'fa fa-eye-slash'})
+      button.textContent = ''
+      button.appendChild(i)
+      flag_for_eye = false;
+      originalcx.canvas.width = 0;
+      originalcx.canvas.height = 0;
+
+    }else{
+      if(fileArrayOriginal_name.includes(fileArray[nowFile][0])){
+        let i = elt('i', {class: 'fa fa-eye'})
+        button.textContent = ''
+        button.appendChild(i)
+        flag_for_eye = true;
+      
+        originalfilebartocanvas(fileArray[nowFile][0]);
+      }
+      flag_for_eye = true;
+    }
+
+  })
+  return button;
+}
+async function originalfilebartocanvas(name){
+  for(let i=0;i<fileArrayOriginal.length;i++){
+      if(name == fileArrayOriginal[i][0]){
+          ourfile = fileArrayOriginal[i][2];
+          break;
+      }
+  }
+
+  var reader = new FileReader();
+  await new Promise(resolve => {
+    reader.readAsDataURL(ourfile);
+    reader.onload = async function(){
+        await originalloadImageURL(reader.result, name)
+      resolve();
+    };
+  }).then();
+  // console.log(fileArrayOriginal_commands)
+}
+async function originalloadImageURL(url, name) {
+
+  await new Promise(resolve => {
+    image.src = url;
+    image.onload = function() {
+
+      x = image.width;
+      y = image.height;
+
+      originalcx.canvas.width = x;
+      originalcx.canvas.height = y;
+
+      originalcx.drawImage(image,0,0,x,y);
+      // console.log(fileArrayOriginal_commands[name][0])
+
+      if(name in shears_json2){
+        for(let i=0;i<shears_json2[name].length;i++){
+          let x1 = shears_json2[name][i][0];
+          let y1 = shears_json2[name][i][1];
+          let shearsWidth = shears_json2[name][i][2];
+          let shearsHeight = shears_json2[name][i][3];
+
+          shearscx2.canvas.width = shearsWidth;
+            shearscx2.canvas.height = shearsHeight;
+
+            shearscx3.canvas.width = shearsWidth;
+            shearscx3.canvas.height = shearsHeight; 
+
+
+            shearscx2.drawImage(originalcx.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
+
+            originalcx.canvas.width = shearsWidth;
+            originalcx.canvas.height = shearsHeight;
+
+            originalcx.drawImage(shearscx2.canvas, 0,0,shearsWidth, shearsHeight)
+
+
+            shearscx.canvas.width = 0;
+            shearscx.canvas.height = 0;
+
+            shearscx2.canvas.width = 0;
+            shearscx2.canvas.height = 0;
+
+            shearscx3.canvas.width = 0;
+            shearscx3.canvas.height = 0;
+        }
+      }
+      // console.log(fileArrayOriginal)
+      for(let i=0;i<fileArrayOriginal.length; i++){
+        if(fileArrayOriginal[i][0] == name){
+
+          for(let j=0;j<fileArrayOriginal[i][3].length; j++){
+            let x1 = fileArrayOriginal[i][3][j][1];
+            let y1 = fileArrayOriginal[i][3][j][2];
+            let shearsWidth = fileArrayOriginal[i][3][j][3];
+            let shearsHeight = fileArrayOriginal[i][3][j][4];
+
+            shearscx2.canvas.width = shearsWidth;
+            shearscx2.canvas.height = shearsHeight;
+
+            shearscx3.canvas.width = shearsWidth;
+            shearscx3.canvas.height = shearsHeight; 
+
+
+            shearscx2.drawImage(originalcx.canvas, x1, y1, shearsWidth, shearsHeight, 0, 0, shearsWidth,shearsHeight);
+
+            originalcx.canvas.width = shearsWidth;
+            originalcx.canvas.height = shearsHeight;
+
+            originalcx.drawImage(shearscx2.canvas, 0,0,shearsWidth, shearsHeight)
+
+
+            shearscx.canvas.width = 0;
+            shearscx.canvas.height = 0;
+
+            shearscx2.canvas.width = 0;
+            shearscx2.canvas.height = 0;
+
+            shearscx3.canvas.width = 0;
+            shearscx3.canvas.height = 0;
+          }
+        }
+      }
+      resolve();
+    };
+  }).then();
+}
+
 var numberscroll = 0;
 var numbers_photo =[];
 // После нажатия на кнопку на Filebar срабаотывает эта функция, которая передает значения в loadImageURL()
 var nowFile = 0;
 async function filebartocanvas(name){
+  let i = elt('i', {class: 'fa fa-eye-slash'})
+  document.getElementById('id_mask2original').textContent = ''
+  document.getElementById('id_mask2original').appendChild(i)
+
+  if(!(name in shears_json)){
+    shears_json[name] = [];
+  }
+  flag_for_eye = false;
+    originalcx.canvas.width = 0;
+    originalcx.canvas.height = 0;
     shearscx.canvas.width = 0;
     shearscx.canvas.height = 0;
     for(let i=0;i<countFile;i++){
@@ -959,7 +1212,6 @@ async function filebartocanvas(name){
     cx.strokeStyle =global_color;
     cx.lineWidth = global_size;
 }
-
 
 
 // Отрисовываем Canvas
@@ -1318,44 +1570,6 @@ await new Promise(resolve => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       // алгоритм заменяет все цвета на красные
       var RAINBOW = secretcx.getImageData(0,0,x,y);
       var rainbowColors = RAINBOW.data
@@ -1480,16 +1694,29 @@ await new Promise(resolve => {
 
 
 controls.save = function(cx) {
-  var link = elt("button", {class: `btn ${localTheme}btn`, id: "id_save"}, "Сохранить");
+  var link = elt("button", {class: `${localTheme}btn`, id: "id_save"}, "Сохранить");
   async function download() {
+
+    // console.log(shears_json)
+
+    // var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(shears_json));
+    // var dlAnchorElem = document.createElement('a');
+    // dlAnchorElem.setAttribute("href",     dataStr     );
+    // dlAnchorElem.setAttribute("download", "scene.json");
+    // dlAnchorElem.click();
+    // dlAnchorElem.remove()
+
     if(countFile != 0){
       document.getElementById('id_secretcanvas').style = 'display: none;'
-      if(countFile != 1){
+      document.getElementById('id_windowprogressbar').style.display = 'block';
+      document.getElementById('id_progressbar').max = countFile;
+
         var zip = new JSZip();
         let fornowFile = nowFile;
         for(let i=0;i<countFile;i++){
+          document.getElementById('id_progress_text').textContent = `Скачивание файлов: ${i}/${countFile}`;
+          let filename = fileArray[i][0];
           await secretfilebartocanvas(fileArray[i][0]);
-          let filename = [fileArray[i][0].slice(0, fileArray[i][0].length-4), "_new", fileArray[i][0].slice(fileArray[i][0].length-4)].join('')
           zip.file(`${filename}`, dataURLtoBlob(secretcx3.canvas.toDataURL()));
 
           secretcx.canvas.width = 0;
@@ -1500,31 +1727,23 @@ controls.save = function(cx) {
           
           secretcx3.canvas.width = 0;
           secretcx3.canvas.height = 0;
+          document.getElementById('id_progressbar').value = i+1;
         }
+        zip.file('mask.json', JSON.stringify(shears_json))
         zip.generateAsync({type:'blob'})
         .then((content) => {
           saveAs(content, 'out.zip')
         })
         filebartocanvas(fileArray[fornowFile][0])
-        }else{
-        await secretfilebartocanvas(fileArray[0][0]);
-        let img = secretcx3.canvas.toDataURL("image/png");
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = 'blob';
-        xhr.onload = function () {
-            let a = document.createElement('a');
-            a.href = window.URL.createObjectURL(xhr.response);
-            a.download = [fileArray[0][0].slice(0, fileArray[0][0].length-4), "_new", fileArray[0][0].slice(fileArray[0][0].length-4)].join('');
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        };
-        xhr.open('GET', img);
-        xhr.send();
-        filebartocanvas(fileArray[0][0])
-      }
+        
+      
       // console.log('done')
+      document.getElementById('id_windowprogressbar').style.display = 'none';
+      document.getElementById('id_progressbar').max = 0;
+      document.getElementById('id_progressbar').value = 0;
+
+
+
       document.getElementById('id_canvas').style = 'display: inline;'
     }
   }
@@ -1556,6 +1775,29 @@ function dataURLtoBlob(dataurl) {
 
 function KeyPress(e) {
     var evtobj = window.event? event : e
+    if(evtobj.keyCode == 0 || evtobj.keyCode == 32){
+      let button = document.getElementById('id_mask2original')
+      if(flag_for_eye){
+        let i = elt('i', {class: 'fa fa-eye-slash'})
+        button.textContent = ''
+        button.appendChild(i)
+        flag_for_eye = false;
+        originalcx.canvas.width = 0;
+        originalcx.canvas.height = 0;
+        
+      }else{
+        if(fileArrayOriginal_name.includes(fileArray[nowFile][0])){
+          let i = elt('i', {class: 'fa fa-eye'})
+          button.textContent = ''
+          button.appendChild(i)
+          flag_for_eye = true;
+        
+          originalfilebartocanvas(fileArray[nowFile][0]);
+        }
+        flag_for_eye = true;
+      }  
+      e.preventDefault();
+    }
     if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
       
       if(fileArray[nowFile][3][fileArray[nowFile][3].length-1][0] != 'Shears'){
@@ -1564,7 +1806,14 @@ function KeyPress(e) {
         fileArray[nowFile][3].pop();
       }else{
         fileArray[nowFile][3].pop();
+
+        for(let i = 0;i<fileArrayOriginal.length;i++){
+          if(fileArrayOriginal[i][0] == fileArray[nowFile][0]){
+            fileArrayOriginal[i][3].pop()
+          }
+        }
       }
+      shears_json[fileArray[nowFile][0]].pop()
         filebartocanvas(fileArray[nowFile][0]);
         e.preventDefault();
     }
@@ -1861,7 +2110,7 @@ document.onkeydown = KeyPress;
 
 // Смена темы
 controls.theme = function(cx) {
-    var new_theme = elt("select", {class: `btn ${localTheme}btn`, id:'id_theme'});
+    var new_theme = elt("select", {class: `${localTheme}btn`, id:'id_theme'});
     var themes = ['Светлая', 'Тёмная'];
     themes.forEach(function(theme) {
         if(flag_for_select) {
@@ -1895,6 +2144,12 @@ controls.theme = function(cx) {
         document.getElementById('id_windowswitch').classList.add('lightToolFileFooterbar')
 
         // Buttons
+        document.getElementById('id_file-upload2').classList.remove('darkbtn')
+        document.getElementById('id_file-upload2').classList.add('lightbtn')
+
+        document.getElementById('id_mask2original').classList.remove('darkbtn')
+        document.getElementById('id_mask2original').classList.add('lightbtn')
+
         document.getElementById('id_firstcolor').classList.remove('darkbtn')
         document.getElementById('id_firstcolor').classList.add('lightbtn')
 
@@ -1959,6 +2214,12 @@ controls.theme = function(cx) {
         document.getElementById('id_windowswitch').classList.add('darkToolFileFooterbar')
 
         // Buttons
+        document.getElementById('id_file-upload2').classList.remove('lightbtn')
+        document.getElementById('id_file-upload2').classList.add('darkbtn')
+
+        document.getElementById('id_mask2original').classList.remove('lightbtn')
+        document.getElementById('id_mask2original').classList.add('darkbtn')
+
         document.getElementById('id_firstcolor').classList.remove('lightbtn')
         document.getElementById('id_firstcolor').classList.add('darkbtn')
 
